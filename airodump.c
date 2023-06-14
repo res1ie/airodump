@@ -72,6 +72,9 @@ void parse(uint32_t len,const u_char* packet,struct parsed_info *out)
 {
 	struct ieee80211_radiotap_iterator iter;
 	int err;
+	out->isbeacon=false;
+	out->ESSID_len=0;
+	out->ENC=0;
 	if(err=ieee80211_radiotap_iterator_init(&iter, packet, len, &vns))
 	{
 		printf("malformed radiotap header (init returned %d)\n",err);
@@ -92,23 +95,25 @@ void parse(uint32_t len,const u_char* packet,struct parsed_info *out)
 	uint32_t idx=iter._rtheader->it_len;
 	if(idx>=len)return;
 	struct ieee80211_beacon_frame *beacon_frame=(struct ieee80211_beacon_frame*)(packet+idx);
+	out->isbeacon=(0x80==beacon_frame->frame_control);
 	for(int i=0;i<6;i++){
 		out->BSSID[i]=beacon_frame->BSSID[i];
-		printf("%02x",out->BSSID[i]);
-		if(i<5)printf(":");
+		//printf("%02x",out->BSSID[i]);
+		//if(i<5)printf(":");
 	}
-	printf("\n");
-	
+	//printf("\n");
+	if(!out->isbeacon)return;
 	idx+=sizeof(struct ieee80211_beacon_frame);
 	if(idx>=len)return;
-	if(1)//!packet[idx])
+	if(packet[idx])
 	{
 		out->ESSID_len=packet[idx+1];
 		for(int i=0;i<packet[idx+1];i++)
 		{
 			out->ESSID[i]=packet[idx+i+2];
 		}
-		out->ESSID[packet[idx+1]]=0;
+		out->ESSID[out->ESSID_len]=0;
 		printf("%s\n",out->ESSID);
 	}
+	while(idx<len&&packet[idx]!=0x30)idx+=packet[idx+1]+2;
 }

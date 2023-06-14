@@ -5,8 +5,10 @@
 
 struct parsed_info
 {
+	bool isbeacon;
 	uint8_t BSSID[6];
 	uint8_t ESSID_len;
+	uint8_t ENC;
 	int8_t PWR;
 	uint8_t ESSID[32];
 };
