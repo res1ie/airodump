@@ -87,7 +87,7 @@ void parse(uint32_t len,const u_char* packet,struct parsed_info *out)
 			{
 				//print_radiotap_namespace(&iter);
 				if(iter.this_arg_index==IEEE80211_RADIOTAP_DBM_ANTSIGNAL) {
-					printf("\tsignal: %d\n", (char)*iter.this_arg);
+					//printf("\tsignal: %d\n", (char)*iter.this_arg);
 					out->PWR=*iter.this_arg;
 				}
 			}
@@ -105,7 +105,7 @@ void parse(uint32_t len,const u_char* packet,struct parsed_info *out)
 	if(!out->isbeacon)return;
 	idx+=sizeof(struct ieee80211_beacon_frame);
 	if(idx>=len)return;
-	if(packet[idx])
+	if(!packet[idx])
 	{
 		out->ESSID_len=packet[idx+1];
 		for(int i=0;i<packet[idx+1];i++)
@@ -113,7 +113,15 @@ void parse(uint32_t len,const u_char* packet,struct parsed_info *out)
 			out->ESSID[i]=packet[idx+i+2];
 		}
 		out->ESSID[out->ESSID_len]=0;
-		printf("%s\n",out->ESSID);
+		//printf("%s\n",out->ESSID);
 	}
-	while(idx<len&&packet[idx]!=0x30)idx+=packet[idx+1]+2;
+	while(idx<len&&packet[idx]!=0xdd)idx+=packet[idx+1]+2;
+	uint32_t OUI=0;
+	if(packet[idx]==0xdd)
+	{
+		OUI=*(uint32_t*)(packet+idx+2)&0xFFFFFF;
+		if(OUI==0xF25000)out->ENC=1;
+		else if(OUI==0xAC0F00)out->ENC=2;
+		else out->ENC=3;
+	}
 }
