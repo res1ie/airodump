@@ -50,7 +50,6 @@ int main(int argc, char* argv[]) {
 			id|=out.BSSID[i];
 		}
 		con[id].PWR=out.PWR;
-		printf("%d ",out.isbeacon);
 		if(out.isbeacon)
 		{
 			con[id].ENC=out.ENC;
@@ -68,10 +67,11 @@ int main(int argc, char* argv[]) {
 			con[id].datas+=1;
 		}
 		
-		printf("BSSID              PWR Beacons #Data ENC ESSID\n");
+		printf("BSSID              PWR Beacons #Data ENC  ESSID\n");
 		for(auto it=con.begin();it!=con.end();++it)
 		{
 			id=it->first;
+			if(!con[id].beacons)continue;
 			for(int i=5;i>=0;i--)
 			{
 				printf("%02x",(id>>(i<<3))&0xFF);
